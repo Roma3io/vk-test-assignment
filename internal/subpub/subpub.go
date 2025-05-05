@@ -39,7 +39,8 @@ type subscriber struct {
 func (s *subscriber) Unsubscribe() {
 	s.subject.mu.Lock()
 	defer s.subject.mu.Unlock()
-	delet(s.subject.subscribers, s)
+	delete(s.subject.subscribers, s)
+	close(s.ch)
 }
 
 func NewSubPub() SubPub {
@@ -48,6 +49,19 @@ func NewSubPub() SubPub {
 
 func (s *subPub) Subscribe(subject string, cb MessageHandler) (Subscription, error) {}
 
-func (s *subPub) Publish(subject string, msg interface{}) error {}
+func (s *subPub) Publish(subject string, msg interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	subj, ok := s.subjects[subject]
+	if !ok {
+		return nil
+	}
+	subj.mu.RLock()
+	defer subj.mu.RUnlock()
+	for sub := range subj.subscribers {
+		sub.ch <- msg
+	}
+	return nil
+}
 
 func (s *subPub) Close(ctx context.Context) error {}
