@@ -44,10 +44,15 @@ func (s *subscriber) Unsubscribe() {
 }
 
 func NewSubPub() SubPub {
-	return subPub{mu: sync.RWMutex{}, subjects: map[string]*subject{}, closeSignal: make(chan struct{}), closed: false}
+	return &subPub{
+		subjects:    make(map[string]*subject),
+		closeSignal: make(chan struct{}),
+	}
 }
 
-func (s *subPub) Subscribe(subject string, cb MessageHandler) (Subscription, error) {}
+func (s *subPub) Subscribe(subject string, cb MessageHandler) (Subscription, error) {
+
+}
 
 func (s *subPub) Publish(subject string, msg interface{}) error {
 	s.mu.Lock()
