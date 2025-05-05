@@ -50,8 +50,40 @@ func NewSubPub() SubPub {
 	}
 }
 
-func (s *subPub) Subscribe(subject string, cb MessageHandler) (Subscription, error) {
-
+func (s *subPub) Subscribe(subjectName string, cb MessageHandler) (Subscription, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	subj, ok := s.subjects[subjectName]
+	if !ok {
+		subj = &subject{
+			subscribers: make(map[*subscriber]struct{}),
+		}
+		s.subjects[subjectName] = subj
+	}
+	sub := &subscriber{
+		ch:      make(chan interface{}, 10),
+		cb:      cb,
+		subject: subj,
+	}
+	subj.mu.Lock()
+	subj.subscribers[sub] = struct{}{}
+	subj.mu.Unlock()
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		for {
+			select {
+			case msg, ok := <-sub.ch:
+				if !ok {
+					return
+				}
+				sub.cb(msg)
+			case <-s.closeSignal:
+				return
+			}
+		}
+	}()
+	return sub, nil
 }
 
 func (s *subPub) Publish(subject string, msg interface{}) error {
