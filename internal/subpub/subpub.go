@@ -2,6 +2,7 @@ package subpub
 
 import (
 	"context"
+	"fmt"
 	"sync"
 )
 
@@ -53,6 +54,9 @@ func NewSubPub() SubPub {
 func (s *subPub) Subscribe(subjectName string, cb MessageHandler) (Subscription, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.closed {
+		return nil, fmt.Errorf("subpub is closed")
+	}
 	subj, ok := s.subjects[subjectName]
 	if !ok {
 		subj = &subject{
@@ -89,6 +93,9 @@ func (s *subPub) Subscribe(subjectName string, cb MessageHandler) (Subscription,
 func (s *subPub) Publish(subject string, msg interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.closed {
+		return fmt.Errorf("subpub is closed")
+	}
 	subj, ok := s.subjects[subject]
 	if !ok {
 		return nil
@@ -101,4 +108,24 @@ func (s *subPub) Publish(subject string, msg interface{}) error {
 	return nil
 }
 
-func (s *subPub) Close(ctx context.Context) error {}
+func (s *subPub) Close(ctx context.Context) error {
+	s.mu.Lock()
+	if s.closed {
+		s.mu.Unlock()
+		return nil
+	}
+	s.closed = true
+	close(s.closeSignal)
+	s.mu.Unlock()
+	done := make(chan struct{})
+	go func() {
+		s.wg.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
