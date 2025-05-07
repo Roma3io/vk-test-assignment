@@ -15,13 +15,9 @@ type GRPCServer struct {
 	Timeout time.Duration `yaml:"timeout" env-default:"5s"`
 }
 
-func LoadConfig(path string) (*Config, error) {
+func Load(path string) (*Config, error) {
 	var cfg Config
 	err := cleanenv.ReadConfig(path, &cfg)
-	if err != nil {
-		return nil, err
-	}
-	err = cleanenv.ReadEnv(&cfg)
 	if err != nil {
 		return nil, err
 	}
