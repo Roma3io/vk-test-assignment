@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.LoadConfig("config.yaml")
+	cfg, err := config.Load("config.yaml")
 	if err != nil {
 		log.Fatal("Could not load config: ", err)
 	}
