@@ -19,8 +19,8 @@ func main() {
 		panic(err) //stub(need to make hierarchy like env < flag < default)
 	}
 	log := setupLogger(cfg.Env)
-	bus := subpub.NewSubPub()
 	defer log.Sync()
+	bus := subpub.NewSubPub()
 	server := pubsubservice.NewPubSubServer(bus, cfg, log)
 	server.Start()
 
