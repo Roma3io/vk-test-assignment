@@ -24,6 +24,8 @@ func NewPubSubServer(bus subpub.SubPub, config *config.Config, log *zap.Logger) 
 	}
 }
 
+func (s *PubSubServer) Start() error { return nil }
+
 func (s *PubSubServer) Subscribe() {}
 
 func (s *PubSubServer) Publish() {}
