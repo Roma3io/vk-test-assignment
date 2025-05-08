@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"go.uber.org/zap"
 	"log"
+	"os/signal"
+	"syscall"
 	"vk-test-assignment/internal/config"
+	"vk-test-assignment/internal/pubsubservice"
+	"vk-test-assignment/pkg/subpub"
 )
 
 const (
@@ -19,9 +24,15 @@ func main() {
 	}
 	logger := setupLogger(cfg.Env)
 	defer logger.Sync()
-	//bus := subpub.NewSubPub()
-	//server := pubsubservice.NewPubSubServer(bus, cfg, log)
-	//server.Start()
+	bus := subpub.NewSubPub()
+	server := pubsubservice.NewPubSubServer(bus, cfg, logger)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+	if err := server.Start(ctx); err != nil {
+		logger.Fatal("Failed to start server", zap.Error(err))
+	}
+	<-ctx.Done()
+	logger.Info("Server stopped")
 }
 
 func setupLogger(env string) *zap.Logger {

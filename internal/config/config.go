@@ -25,7 +25,7 @@ func Load() (*Config, error) {
 		if err := cleanenv.ReadEnv(&cfg); err != nil {
 			return nil, fmt.Errorf("failed to load config from env: %w", err)
 		}
-		fmt.Printf("No config file provided, using defaults or environment variables: %+v", cfg)
+		fmt.Printf("No config file provided, using defaults or environment variables: %+v\n", cfg)
 		return &cfg, nil
 	}
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
