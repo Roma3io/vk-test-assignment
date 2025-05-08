@@ -1,7 +1,10 @@
 package config
 
 import (
+	"flag"
+	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"os"
 	"time"
 )
 
@@ -15,11 +18,28 @@ type GRPCServer struct {
 	Timeout time.Duration `yaml:"timeout" env-default:"5s"`
 }
 
-func Load(path string) (*Config, error) {
+func Load() (*Config, error) {
 	var cfg Config
-	err := cleanenv.ReadConfig(path, &cfg)
-	if err != nil {
-		return nil, err
+	path := fetchConfig()
+	if path == "" {
+		if err := cleanenv.ReadEnv(&cfg); err != nil {
+			return nil, fmt.Errorf("failed to load config from env: %w", err)
+		}
+		fmt.Printf("No config file provided, using defaults or environment variables: %+v", cfg)
+		return &cfg, nil
+	}
+	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
+		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
 	}
 	return &cfg, nil
+}
+
+func fetchConfig() string {
+	var res string
+	flag.StringVar(&res, "config", "", "path to config file")
+	flag.Parse()
+	if res == "" {
+		res = os.Getenv("CONFIG_PATH")
+	}
+	return res
 }

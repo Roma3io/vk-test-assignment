@@ -1,10 +1,9 @@
-package server
+package main
 
 import (
 	"go.uber.org/zap"
+	"log"
 	"vk-test-assignment/internal/config"
-	"vk-test-assignment/internal/pubsubservice"
-	"vk-test-assignment/pkg/subpub"
 )
 
 const (
@@ -14,16 +13,15 @@ const (
 )
 
 func main() {
-	cfg, err := config.Load("config.yaml")
+	cfg, err := config.Load()
 	if err != nil {
-		panic(err) //stub(need to make hierarchy like env < flag < default)
+		log.Fatalf("Config error %v", err)
 	}
-	log := setupLogger(cfg.Env)
-	defer log.Sync()
-	bus := subpub.NewSubPub()
-	server := pubsubservice.NewPubSubServer(bus, cfg, log)
-	server.Start()
-
+	logger := setupLogger(cfg.Env)
+	defer logger.Sync()
+	//bus := subpub.NewSubPub()
+	//server := pubsubservice.NewPubSubServer(bus, cfg, log)
+	//server.Start()
 }
 
 func setupLogger(env string) *zap.Logger {

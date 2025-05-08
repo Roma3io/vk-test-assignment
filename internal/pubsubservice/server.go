@@ -4,7 +4,6 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"net"
 	"strconv"
 	"vk-test-assignment/internal/config"
@@ -49,6 +48,6 @@ func (s *PubSubServer) Subscribe(req *pb.SubscribeRequest, stream pb.PubSub_Subs
 	return nil
 }
 
-func (s *PubSubServer) Publish(ctx context.Context, req *pb.PublishRequest) (*emptypb.Empty, error) {
-	return nil, nil
+func (s *PubSubServer) Publish(ctx context.Context, req *pb.PublishRequest) error {
+	return nil
 }
