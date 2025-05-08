@@ -2,7 +2,7 @@ PROTO_PATH=internal/proto
 PROTO_FILE_PATH=internal/proto/subpub.proto
 BUILD_PATH=bin
 
-.PHONY: test
+.PHONY: test clean
 
 all: build-server build-client
 
