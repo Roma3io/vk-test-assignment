@@ -91,5 +91,17 @@ func (s *PubSubServer) Subscribe(req *pb.SubscribeRequest, stream pb.PubSub_Subs
 }
 
 func (s *PubSubServer) Publish(ctx context.Context, req *pb.PublishRequest) (*emptypb.Empty, error) {
-	return nil, nil
+	if req.Key == "" || strings.TrimSpace(req.Key) == "" {
+		return nil, status.Error(codes.InvalidArgument, "Key cannot be empty")
+	}
+	if req.Data == "" || strings.TrimSpace(req.Data) == "" {
+		return nil, status.Error(codes.InvalidArgument, "Data cannot be empty")
+	}
+	s.log.Debug("Publishing: ", zap.String("key", req.Key), zap.String("data", req.Data))
+	if err := s.bus.Publish(req.Key, req.Data); err != nil {
+		s.log.Error("Failed to publish event", zap.Error(err))
+		return nil, status.Error(codes.Internal, "Failed to publish event")
+	}
+	s.log.Info("Published event", zap.String("key", req.Key), zap.String("data", req.Data))
+	return &emptypb.Empty{}, nil
 }
