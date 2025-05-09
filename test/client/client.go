@@ -84,7 +84,6 @@ func main() {
 		}
 	}()
 
-	// Test Publish
 	for i := 0; i < 5; i++ {
 		msg := fmt.Sprintf("message %d", i)
 		_, err := client.Publish(ctx, &pb.PublishRequest{
