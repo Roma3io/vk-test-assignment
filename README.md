@@ -39,7 +39,11 @@ service PubSub {
 - Streaming-подписки.
 - Валидация входящих запросов.
 - Логирование операций.
-- Graceful shutdown.
+- Конфиг.
+
+Для логирования была использована библиотека [`zap`](https://pkg.go.dev/go.uber.org/zap)
+
+Для конфига была использована библиотека [`cleanenv`](https://github.com/ilyakaznacheev/cleanenv)
 
 ## Конфигурация
 
@@ -90,10 +94,6 @@ grpc_server:
 Аналогичные команды для запуска клиента (*тестового клиента запускать с тем же самым конфиг-файлом!*)
 
 Также для тестирования можно использовать утилиту [`grpcurl`](https://github.com/fullstorydev/grpcurl)
-
-Для логирования была использована библиотека [`zap`](https://pkg.go.dev/go.uber.org/zap)
-
-Для конфига была использована библиотека [`cleanenv`](https://github.com/ilyakaznacheev/cleanenv)
 
 ## Использованные паттерны
 
