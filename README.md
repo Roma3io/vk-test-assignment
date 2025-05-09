@@ -59,6 +59,8 @@ grpc_server:
 
 Для сборки используется утилита Make. Если у вас Windows: [Markdown](https://gnuwin32.sourceforge.net/packages/make.htm)
 
+**Перед тем как выполнять какие-либо `make` команды, выполните `go mod tidy`**
+
 **Команды Make**
 
 - Собрать сервер и клиент: `make`
