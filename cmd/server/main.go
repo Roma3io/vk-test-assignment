@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"log"
 	"os/signal"
 	"syscall"
@@ -22,7 +23,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Config error %v", err)
 	}
-	logger := setupLogger(cfg.Env)
+	logger, err := setupLogger(cfg.Env)
+	if err != nil {
+		log.Fatalf("Failed to setup logger: %v", err)
+	}
 	defer logger.Sync()
 	bus := subpub.NewSubPub()
 	server := pubsubservice.NewPubSubServer(bus, cfg, logger)
@@ -35,15 +39,24 @@ func main() {
 	logger.Info("Server stopped")
 }
 
-func setupLogger(env string) *zap.Logger {
-	var logger *zap.Logger
+func setupLogger(env string) (*zap.Logger, error) {
+	var cfg zap.Config
 	switch env {
 	case envProd:
-		logger, _ = zap.NewProduction()
-	case envLocal:
-		logger, _ = zap.NewDevelopment()
-	case envDev:
-		logger, _ = zap.NewDevelopment()
+		cfg = zap.NewProductionConfig()
+		cfg.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
+	case envLocal, envDev:
+		cfg = zap.NewDevelopmentConfig()
+		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		cfg.Level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
+	default:
+		cfg = zap.NewDevelopmentConfig()
+		cfg.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
+		log.Printf("Unknown environment '%s', using default logger configuration", env)
 	}
-	return logger
+	logger, err := cfg.Build()
+	if err != nil {
+		return nil, err
+	}
+	return logger, nil
 }
