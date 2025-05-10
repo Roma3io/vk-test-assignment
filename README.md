@@ -63,6 +63,8 @@ grpc_server:
 
 Для сборки используется утилита Make. Если у вас Windows: [Markdown](https://gnuwin32.sourceforge.net/packages/make.htm)
 
+Также потребуется установить утилиту `protoc` и плагин для *Go*. Подробности по установке [тут](https://grpc.io/docs/languages/go/quickstart/)
+
 **Перед тем как выполнять какие-либо `make` команды, выполните `go mod tidy`**
 
 **Команды Make**
@@ -76,8 +78,9 @@ grpc_server:
 - Удалить `bin` директорию: `make clean`
 
 То есть для сборки стоит выполнить следующую последовательность действий:
+
 1. `go mod tidy`
-2. `mkdir internal/proto/gen` 
+2. `mkdir internal/proto/gen`
 3. `make gen`
 4. `make`
 
