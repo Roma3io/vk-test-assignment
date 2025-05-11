@@ -66,7 +66,8 @@ grpc_server:
 
 Для сборки используется утилита Make. Если у вас Windows: [Markdown](https://gnuwin32.sourceforge.net/packages/make.htm)
 
-Также потребуется установить утилиту `protoc` и плагин для *Go*. Подробности по установке [тут](https://grpc.io/docs/languages/go/quickstart/)
+Также потребуется установить утилиту `protoc` и плагин для *Go*. Подробности по
+установке [тут](https://grpc.io/docs/languages/go/quickstart/)
 
 **Перед тем как выполнять какие-либо `make` команды, выполните `go mod tidy`**
 
