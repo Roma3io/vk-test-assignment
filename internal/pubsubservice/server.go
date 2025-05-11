@@ -2,6 +2,7 @@ package pubsubservice
 
 import (
 	"context"
+	"fmt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -34,12 +35,10 @@ func NewPubSubServer(bus subpub.SubPub, config *config.Config, log *zap.Logger) 
 func (s *PubSubServer) Start(ctx context.Context) error {
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(s.config.GRPCServer.Port))
 	if err != nil {
-		s.log.Fatal("Error making listener", zap.Error(err))
-		return err
+		return fmt.Errorf("failed to create listener: %w", err)
 	}
 	s.grpcServer = grpc.NewServer()
 	pb.RegisterPubSubServer(s.grpcServer, s)
-	s.log.Info("starting gRPC server", zap.Int("port", s.config.GRPCServer.Port))
 	go func() {
 		if err := s.grpcServer.Serve(listener); err != nil {
 			s.log.Error("gRPC server error", zap.Error(err))
@@ -48,9 +47,25 @@ func (s *PubSubServer) Start(ctx context.Context) error {
 	go func() {
 		<-ctx.Done()
 		s.log.Info("Shutting down gRPC server")
-		s.grpcServer.GracefulStop()
-		if err := s.bus.Close(context.Background()); err != nil {
-			s.log.Error("Failed to close subpub", zap.Error(err))
+		shutdownCtx, cancel := context.WithTimeout(
+			context.Background(),
+			s.config.GRPCServer.Timeout,
+		)
+		defer cancel()
+		done := make(chan struct{})
+		go func() {
+			s.grpcServer.GracefulStop()
+			if err := s.bus.Close(shutdownCtx); err != nil {
+				s.log.Error("Failed to close subpub", zap.Error(err))
+			}
+			close(done)
+		}()
+		select {
+		case <-done:
+			s.log.Info("Server stopped gracefully")
+		case <-shutdownCtx.Done():
+			s.log.Warn("Forced shutdown due to timeout")
+			s.grpcServer.Stop()
 		}
 	}()
 	return nil
